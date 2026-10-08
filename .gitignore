@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Generated models
+*.joblib
+*.pkl
+*.pickle
+
+# Data files
+*.xlsx
+*.xls
+*.csv
+
+# Generated results
+*.png
+*.jpg
+*.jpeg
+*.pdf
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
