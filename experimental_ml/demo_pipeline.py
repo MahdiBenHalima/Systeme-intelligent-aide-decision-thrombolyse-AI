@@ -12,7 +12,7 @@ from sklearn.datasets import make_classification
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, f1_score, recall_score, roc_auc_score
+from sklearn.metrics import (accuracy_score, confusion_matrix, f1_score, precision_score, recall_score, roc_auc_score)
 from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -20,7 +20,7 @@ from sklearn.preprocessing import StandardScaler
 
 def build_estimators(seed: int = 42):
     """Keep preprocessing inside the CV pipeline to prevent train-fold leakage."""
-    return {
+    models = {
         "logistic_regression": Pipeline([
             ("imputer", SimpleImputer(strategy="median")),
             ("scaler", StandardScaler()),
@@ -33,6 +33,21 @@ def build_estimators(seed: int = 42):
             )),
         ]),
     }
+    # Optional dependency: CI installs XGBoost to cover the third estimator.
+    try:
+        from xgboost import XGBClassifier
+    except ImportError:
+        pass
+    else:
+        models["xgboost"] = Pipeline([
+            ("imputer", SimpleImputer(strategy="median")),
+            ("classifier", XGBClassifier(
+                n_estimators=60, max_depth=3, learning_rate=0.08,
+                eval_metric="logloss", tree_method="hist", n_jobs=1,
+                random_state=seed,
+            )),
+        ])
+    return models
 
 
 def run_demo(n_samples: int = 240, seed: int = 42):
@@ -67,12 +82,16 @@ def run_demo(n_samples: int = 240, seed: int = 42):
         estimator.fit(X_train, y_train)
         predictions = estimator.predict(X_test)
         probabilities = estimator.predict_proba(X_test)[:, 1]
+        tn, fp, fn, tp = confusion_matrix(y_test, predictions, labels=[0, 1]).ravel()
         report["models"][name] = {
             "train_cv_auc_mean": round(float(scores.mean()), 4),
             "train_cv_auc_std": round(float(scores.std()), 4),
             "synthetic_holdout_auc": round(float(roc_auc_score(y_test, probabilities)), 4),
             "synthetic_holdout_accuracy": round(float(accuracy_score(y_test, predictions)), 4),
             "synthetic_holdout_recall": round(float(recall_score(y_test, predictions)), 4),
+            "synthetic_holdout_precision": round(float(precision_score(y_test, predictions, zero_division=0)), 4),
+            "synthetic_holdout_specificity": round(float(tn / max(tn + fp, 1)), 4),
+            "synthetic_holdout_confusion_matrix": [[int(tn), int(fp)], [int(fn), int(tp)]],
             "synthetic_holdout_f1": round(float(f1_score(y_test, predictions)), 4),
         }
     return report
