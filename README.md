@@ -13,6 +13,7 @@ The source project includes preprocessing research, experimental model compariso
 | Original deployed-model input contract | `clinical_ml/features.py` — same 12 named, ordered fields as the private inference service |
 | Original inference logic | `clinical_ml/inference.py` — loads a local trained model, calls `predict` and optional `predict_proba` |
 | Local execution interface | `clinical_ml/predict.py` — accepts a JSON file supplied locally; no bundled patient records |
+| Separate reproducible non-clinical ML demo | `experimental_ml/demo_pipeline.py` — synthetic holdout, fold-safe preprocessing, CV, model comparison; not patient research |
 | Experimental research utilities | `preprocessing/`, `feature_selection/`, `models/`, `evaluation/` |
 | Automated validation | `tests/` and GitHub Actions; checks schema, input validation and model interface |
 
@@ -64,6 +65,26 @@ The public `preprocessing/`, `feature_selection/`, `models/` and `evaluation/` m
 
 **These public utilities are not asserted to reproduce the exact original training notebook.** The private research notebook includes analyses, data-quality work and data that are not safe to publish without further review. This repository prioritizes a faithful public **inference implementation** and documented research methods rather than falsely claiming full reproducibility of the historical training run.
 
+## Reproducible synthetic software demonstration
+
+The portfolio also includes a **separate training and evaluation demonstration**. This is not the original clinical cohort and does not recreate its metrics. It uses only `sklearn.make_classification` synthetic tabular data to demonstrate the engineering mechanics of:
+
+- Stratified 80/20 holdout split before any fitting
+- Train-only 3-fold stratified cross-validation
+- Fold-local imputation and optional scaling via `sklearn.pipeline.Pipeline`
+- Logistic Regression and Random Forest comparisons
+- ROC AUC, recall, F1 and accuracy on the untouched synthetic holdout
+- Deterministic seed and machine-readable JSON output
+
+Run:
+
+```bash
+python -m pip install "numpy>=1.26" "pandas>=2.0" "scikit-learn>=1.3"
+python -m experimental_ml.demo_pipeline --samples 240 --seed 42
+```
+
+**All reported scores from this command are synthetic software-test scores, never estimates of clinical effectiveness.** A separate source-to-publicity audit and the validation limitations are in [TRACEABILITY.md](TRACEABILITY.md).
+
 ## Running the inference module
 
 Python 3.10+ is recommended.
@@ -90,9 +111,9 @@ python -m pip install "pandas>=2.0" "pytest>=8"
 python -m pytest tests -q
 ```
 
-CI validates the feature contract and function-level interface without a trained artifact or patient data. **This does not validate model accuracy, clinical safety, real-patient generalization or the end-to-end private application.** Local evaluation with authorized data and the original training pipeline requires a separate controlled environment.
+CI validates the feature contract, function-level interface and non-clinical training demonstration without a trained artifact or patient data. **This does not validate model accuracy, clinical safety, real-patient generalization or the end-to-end private application.** Local evaluation with authorized data and the original training pipeline requires a separate controlled environment.
 
-No performance metrics are published here because source-specific provenance, data splits and independent validation must be checked before claiming them publicly.
+No patient-level performance metrics are published here because source-specific provenance, data splits and independent validation must be checked before claiming them publicly.
 
 ## Data privacy and clinical safety
 
