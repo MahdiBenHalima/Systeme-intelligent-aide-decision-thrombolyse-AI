@@ -72,18 +72,18 @@ The portfolio also includes a **separate training and evaluation demonstration**
 - Stratified 80/20 holdout split before any fitting
 - Train-only 3-fold stratified cross-validation
 - Fold-local imputation and optional scaling via `sklearn.pipeline.Pipeline`
-- Logistic Regression and Random Forest comparisons
-- ROC AUC, recall, F1 and accuracy on the untouched synthetic holdout
+- Logistic Regression, Random Forest and optional XGBoost comparisons (XGBoost installed in CI)
+- ROC AUC, precision, recall, specificity, F1, accuracy and confusion matrix on the untouched synthetic holdout
 - Deterministic seed and machine-readable JSON output
 
 Run:
 
 ```bash
-python -m pip install "numpy>=1.26" "pandas>=2.0" "scikit-learn>=1.3"
+python -m pip install "numpy>=1.26" "pandas>=2.0" "scikit-learn>=1.3" "xgboost>=2.0"
 python -m experimental_ml.demo_pipeline --samples 240 --seed 42
 ```
 
-**All reported scores from this command are synthetic software-test scores, never estimates of clinical effectiveness.** A separate source-to-publicity audit and the validation limitations are in [TRACEABILITY.md](TRACEABILITY.md).
+**All reported scores from this command are synthetic software-test scores, never estimates of clinical effectiveness.** A separate source-traceability audit and the validation limitations are in [TRACEABILITY.md](TRACEABILITY.md).
 
 ## Running the inference module
 
